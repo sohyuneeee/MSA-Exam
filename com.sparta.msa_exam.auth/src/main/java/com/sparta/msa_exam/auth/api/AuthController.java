@@ -16,12 +16,12 @@ public class AuthController {
 
     private final KakaoService kakaoService;
     private final AuthService authService;
-    private final String headerKey = "Authorization";
+    private static final String AUTHORIZATION_HEADER = "Authorization";
 
     @GetMapping("/signUp/kakao")
     public ResponseEntity<Void> kakaoLogin(@RequestParam String code, HttpServletResponse response) throws JsonProcessingException {
         String token = kakaoService.kakaoLogin(code);
-        response.addHeader(headerKey, token);
+        response.addHeader(AUTHORIZATION_HEADER, token);
         return ResponseEntity.ok().build();
     }
 
@@ -34,7 +34,7 @@ public class AuthController {
     @GetMapping("/signIn")
     public ResponseEntity<Void> signIn(@Valid @RequestBody UserRequestDto requestDto, HttpServletResponse response) {
         String token = authService.signIn(requestDto);
-        response.addHeader(headerKey, token);
+        response.addHeader(AUTHORIZATION_HEADER, token);
         return ResponseEntity.ok().build();
     }
 
