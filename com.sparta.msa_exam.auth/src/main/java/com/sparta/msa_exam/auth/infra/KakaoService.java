@@ -68,7 +68,7 @@ public class KakaoService {
         body.add("grant_type", grantType);
         body.add("client_id", clientId);
         //todo: 배포 후 주소 변경
-        body.add("redirect_uri", "http://localhost:19095/api/user/kakao/callback");
+        body.add("redirect_uri", "http://localhost:19091/auth/user/kakao/callback");
         body.add("code", code);
 
         RequestEntity<MultiValueMap<String, String>> requestEntity = RequestEntity
