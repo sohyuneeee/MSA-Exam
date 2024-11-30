@@ -63,7 +63,6 @@ public class LocalJwtAuthenticationFilter implements GlobalFilter {
             exchange.getRequest().mutate()
                     .header("X-User-Id", claims.get("user_id").toString())
                     .build();
-            // 추가적인 검증 로직 (예: 토큰 만료 여부 확인 등)을 여기에 추가할 수 있습니다.
             return true;
         } catch (SecurityException | MalformedJwtException e) {
             throw new CustomException(ErrorCode.AUTH_JWT_INVALID);
@@ -73,11 +72,7 @@ public class LocalJwtAuthenticationFilter implements GlobalFilter {
             throw new CustomException(ErrorCode.AUTH_JWT_UNSUPPORTED);
         } catch (IllegalArgumentException e) {
             throw new CustomException(ErrorCode.AUTH_JWT_CLAIMS_EMPTY);
-        } catch (Exception e) {
-            return false;
         }
     }
-
-
 
 }
