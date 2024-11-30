@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
@@ -35,12 +34,10 @@ public class LocalJwtAuthenticationFilter implements GlobalFilter {
         }
 
         String token = extractToken(exchange);
-
-        if (token == null || !validateToken(token, exchange)) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
+        if (StringUtils.isEmpty(token)) {
+            throw new CustomException(ErrorCode.AUTH_AUTHENTICATION_FAILED);
         }
-
+        validateToken(token, exchange);
         return chain.filter(exchange);
     }
 
@@ -52,14 +49,13 @@ public class LocalJwtAuthenticationFilter implements GlobalFilter {
         return null;
     }
 
-    private boolean validateToken(String token, ServerWebExchange exchange) {
+    private void validateToken(String token, ServerWebExchange exchange) {
         try {
             SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64URL.decode(secretKey));
             Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
             exchange.getRequest().mutate()
                     .header("X-Username", claims.getSubject())
                     .build();
-            return true;
         } catch (SecurityException | MalformedJwtException e) {
             throw new CustomException(ErrorCode.AUTH_JWT_INVALID);
         } catch (ExpiredJwtException e) {
