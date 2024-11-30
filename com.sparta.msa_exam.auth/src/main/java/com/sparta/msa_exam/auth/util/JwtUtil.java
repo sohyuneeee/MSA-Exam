@@ -3,15 +3,14 @@ package com.sparta.msa_exam.auth.util;
 import com.sparta.msa_exam.auth.domain.exception.CustomException;
 import com.sparta.msa_exam.auth.domain.exception.ErrorCode;
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.security.Key;
-import java.util.Base64;
 import java.util.Date;
 
 @Component
@@ -23,23 +22,19 @@ public class JwtUtil {
 
     @Value("${service.jwt.secret-key}")
     private String secretKey;
-    private Key key;
+    private final Key key;
     private final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
 
-    @PostConstruct
-    public void init() {
-        byte[] bytes = Base64.getDecoder().decode(secretKey);
-        key = Keys.hmacShaKeyFor(bytes);
+    public JwtUtil(@Value("${service.jwt.secret-key}") String secretKey) {
+        this.key = Keys.hmacShaKeyFor(Decoders.BASE64URL.decode(secretKey));
     }
 
     public String createToken(String username) {
         Date date = new Date();
-
-        return BEARER_PREFIX +
-                Jwts.builder()
+        return BEARER_PREFIX + Jwts.builder()
                         .setSubject(username)
-                        .setExpiration(new Date(date.getTime() + TOKEN_EXPIRATION))
                         .setIssuedAt(date)
+                        .setExpiration(new Date(date.getTime() + TOKEN_EXPIRATION))
                         .signWith(key, signatureAlgorithm)
                         .compact();
     }
