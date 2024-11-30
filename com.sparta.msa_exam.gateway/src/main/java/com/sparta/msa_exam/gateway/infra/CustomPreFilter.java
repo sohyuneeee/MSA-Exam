@@ -1,5 +1,6 @@
 package com.sparta.msa_exam.gateway.infra;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -12,11 +13,9 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
+@Slf4j
 @Component
 public class CustomPreFilter implements GlobalFilter, Ordered {
-
-    private static final Logger logger = LoggerFactory.getLogger(CustomPreFilter.class.getName());
-
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -30,7 +29,7 @@ public class CustomPreFilter implements GlobalFilter, Ordered {
         }
         exchange.getAttributes().put("traceId", traceId);
 
-        logger.info("[{}] Incoming Request: Method = {}, path = {}", traceId, request.getMethod(), request.getURI());
+        log.info("[{}] Incoming Request: Method = {}, path = {}", traceId, request.getMethod(), request.getURI());
 
         return chain.filter(exchange);
     }

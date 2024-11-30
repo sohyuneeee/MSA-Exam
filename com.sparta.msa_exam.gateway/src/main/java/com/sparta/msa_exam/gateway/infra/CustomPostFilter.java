@@ -1,5 +1,6 @@
 package com.sparta.msa_exam.gateway.infra;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -13,10 +14,9 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 
+@Slf4j
 @Component
 public class CustomPostFilter implements GlobalFilter, Ordered {
-
-    private static final Logger logger = LoggerFactory.getLogger(CustomPostFilter.class.getName());
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -29,14 +29,14 @@ public class CustomPostFilter implements GlobalFilter, Ordered {
 
                 ServerHttpResponse response = exchange.getResponse();
                 Integer statusCode = response.getStatusCode() != null ? response.getStatusCode().value() :  - 1;
-                logger.info("[{}] Outgoing Response: StatusCode = {}, Duration = {}ms", traceId, statusCode, duration);
+                log.info("[{}] Outgoing Response: StatusCode = {}, Duration = {}ms", traceId, statusCode, duration);
 
                 URI routeUri = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
                 if (routeUri != null && routeUri.getPort() != - 1) {
                     Integer port = routeUri.getPort();
                     response.getHeaders().add("Server-Port", String.valueOf(port));
                 }
-                logger.info("[{}] Server-Port = {}", traceId, response.getHeaders().getFirst("Server-Port"));
+                log.info("[{}] Server-Port = {}", traceId, response.getHeaders().getFirst("Server-Port"));
             }
 
         }));
