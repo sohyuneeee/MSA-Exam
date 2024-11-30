@@ -55,13 +55,9 @@ public class LocalJwtAuthenticationFilter implements GlobalFilter {
     private boolean validateToken(String token, ServerWebExchange exchange) {
         try {
             SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64URL.decode(secretKey));
-            Jws<Claims> claimsJws = Jwts.parser()
-                    .verifyWith(key)
-                    .build().parseSignedClaims(token);
-            log.info("#####payload :: " + claimsJws.getPayload().toString());
-            Claims claims = claimsJws.getBody();
+            Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
             exchange.getRequest().mutate()
-                    .header("X-User-Id", claims.get("user_id").toString())
+                    .header("X-Username", claims.getSubject())
                     .build();
             return true;
         } catch (SecurityException | MalformedJwtException e) {
