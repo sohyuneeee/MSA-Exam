@@ -29,10 +29,10 @@ public class JwtUtil {
         this.key = Keys.hmacShaKeyFor(Decoders.BASE64URL.decode(secretKey));
     }
 
-    public String createToken(String username) {
+    public String createToken(Long userId) {
         Date date = new Date();
         return BEARER_PREFIX + Jwts.builder()
-                        .setSubject(username)
+                        .setSubject(String.valueOf(userId))
                         .setIssuedAt(date)
                         .setExpiration(new Date(date.getTime() + TOKEN_EXPIRATION))
                         .signWith(key, signatureAlgorithm)

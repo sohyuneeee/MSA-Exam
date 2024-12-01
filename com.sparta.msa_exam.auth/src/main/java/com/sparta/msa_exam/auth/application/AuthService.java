@@ -32,7 +32,7 @@ public class AuthService {
     public String signIn(@Valid UserRequestDto requestDto) {
         User user = findUser(requestDto.getUsername());
         checkPassword(requestDto.getPassword(), user);
-        return jwtUtil.createToken(user.getUsername());
+        return jwtUtil.createToken(user.getId());
     }
 
     private void checkUsername(String username) {

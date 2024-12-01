@@ -54,7 +54,7 @@ public class jwtAuthenticationFilter implements GlobalFilter {
             SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64URL.decode(secretKey));
             Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
             exchange.getRequest().mutate()
-                    .header("X-Username", claims.getSubject())
+                    .header("X-User-Id", claims.getSubject())
                     .build();
         } catch (SecurityException | MalformedJwtException e) {
             throw new CustomException(ErrorCode.AUTH_JWT_INVALID);
