@@ -46,4 +46,9 @@ public class OrderItem extends BaseEntity{
                 .build();
     }
 
+    public void update(int quantity, int unitPrice) {
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
+    }
+
 }
