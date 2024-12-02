@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class productResponseDto {
+public class ProductResponseDto {
     private Long productId;
     private String productName;
     private Integer supplyPrice;
@@ -19,7 +19,7 @@ public class productResponseDto {
     private LocalDateTime updatedAt;
 
     @Builder
-    private productResponseDto(Product product) {
+    private ProductResponseDto(Product product) {
         this.productId = product.getId();
         this.productName = product.getName();
         this.supplyPrice = product.getSupplyPrice();
@@ -28,8 +28,8 @@ public class productResponseDto {
         this.updatedAt = product.getUpdatedAt();
     }
 
-    public static productResponseDto from(Product product) {
-        return productResponseDto.builder().product(product).build();
+    public static ProductResponseDto from(Product product) {
+        return ProductResponseDto.builder().product(product).build();
     }
 
 }
