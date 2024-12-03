@@ -73,29 +73,6 @@ public class OrderService {
         return OrderResponseDto.from(order);
     }
 
-    private List<OrderItem> createOrderItems(List<OrderItemRequestDto> orderItemRequestList,
-                                             Order order,
-                                             List<OrderItem> existingOrderItems) {
-        return orderItemRequestList.stream()
-                .filter(requestDto -> existingOrderItems.stream()
-                        .noneMatch(orderItem -> orderItem.getProductId().equals(requestDto.getProductId())))
-                .map(requestDto -> OrderItem.of(order, requestDto.getProductId(), requestDto.getQuantity(), requestDto.getUnitPrice()))
-                .toList();
-    }
-
-    public List<OrderItem> updateOrderItems(List<OrderItemRequestDto> orderItemRequestList,
-                                            Order order,
-                                            List<Long> productIdList) {
-        List<OrderItem> existingOrderItems = orderItemRepository.findOrderItemByOrderAndProductIdIn(order, productIdList);
-        existingOrderItems.forEach(orderItem ->
-                orderItemRequestList.stream()
-                        .filter(requestDto -> requestDto.getProductId().equals(orderItem.getProductId()))
-                        .findFirst()
-                        .ifPresent(requestDto -> orderItem.update(requestDto.getQuantity(), requestDto.getUnitPrice()))
-        );
-        return existingOrderItems;
-    }
-
     @CircuitBreaker(name = "order-service", fallbackMethod = "fallbackClientFailCase")
     public List<ProductResponseDto> feignClientFailCase(OrderRequestDto requestDto) {
         List<OrderItemRequestDto> orderItemRequestList = requestDto.getOrderItems();
@@ -113,12 +90,48 @@ public class OrderService {
         throw new CustomException(ErrorCode.PRODUCT_SERVICE_UNAVAILABLE);
     }
 
-    public Order checkOrder(Long orderId) {
+    private List<OrderItem> createOrderItems(List<OrderItemRequestDto> orderItemRequestList,
+                                             Order order,
+                                             List<OrderItem> existingOrderItems) {
+        return orderItemRequestList.stream()
+                .filter(requestDto -> existingOrderItems.stream()
+                        .noneMatch(orderItem ->
+                                orderItem.getProductId().equals(requestDto.getProductId()))
+                )
+                .map(requestDto ->
+                        OrderItem.of(
+                                order,
+                                requestDto.getProductId(),
+                                requestDto.getQuantity(),
+                                requestDto.getUnitPrice())
+                )
+                .toList();
+    }
+
+    private List<OrderItem> updateOrderItems(List<OrderItemRequestDto> orderItemRequestList,
+                                            Order order,
+                                            List<Long> productIdList) {
+        List<OrderItem> existingOrderItems = orderItemRepository.findOrderItemByOrderAndProductIdIn(order, productIdList);
+        existingOrderItems.forEach(orderItem -> orderItemRequestList.stream()
+                        .filter(requestDto ->
+                                requestDto.getProductId().equals(orderItem.getProductId())
+                        )
+                        .findFirst()
+                        .ifPresent(requestDto ->
+                                orderItem.update(
+                                        requestDto.getQuantity(),
+                                        requestDto.getUnitPrice())
+                        )
+        );
+        return existingOrderItems;
+    }
+
+    private Order checkOrder(Long orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
     }
 
-    public void checkUser(String userId, Order order) {
+    private void checkUser(String userId, Order order) {
         if(!Objects.equals(Long.parseLong(userId), order.getUserId()))
             throw new CustomException(ErrorCode.USER_NOT_SAME);
     }
@@ -133,7 +146,9 @@ public class OrderService {
         return orderItemRequestList.stream()
                 .map(orderItemRequest -> {
                     Optional<ProductResponseDto> productResponseDto = productList.stream()
-                            .filter(product -> product.getProductId().equals(orderItemRequest.getProductId()))
+                            .filter(product ->
+                                    product.getProductId().equals(orderItemRequest.getProductId())
+                            )
                             .findFirst();
                     if (productResponseDto.isEmpty()) {
                         throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
@@ -143,16 +158,23 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
-    public List<OrderItem> toOrderItemList(Order order,
+    private List<OrderItem> toOrderItemList(Order order,
                                            List<OrderItemRequestDto> orderItemRequestList,
                                            List<ProductResponseDto> productResponseDtoList) {
         return orderItemRequestList.stream()
                 .map(requestDto -> {
                     ProductResponseDto responseDto = productResponseDtoList.stream()
-                            .filter(product -> product.getProductId().equals(requestDto.getProductId()))
+                            .filter(product ->
+                                    product.getProductId().equals(requestDto.getProductId())
+                            )
                             .findFirst()
                             .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
-                    return OrderItem.of(order, responseDto.getProductId(), requestDto.getQuantity(), requestDto.getUnitPrice());
+                    return OrderItem.of(
+                            order,
+                            responseDto.getProductId(),
+                            requestDto.getQuantity(),
+                            requestDto.getUnitPrice()
+                    );
                 })
                 .toList();
     }
