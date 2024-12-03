@@ -66,16 +66,28 @@ public class OrderService {
         // 기존 아이템 업데이트
         existingOrderItems.forEach(orderItem ->
                 orderItemRequestList.stream()
-                        .filter(requestDto -> requestDto.getProductId().equals(orderItem.getProductId()))
+                        .filter(requestDto ->
+                                requestDto.getProductId().equals(orderItem.getProductId())
+                        )
                         .findFirst()
-                        .ifPresent(requestDto -> orderItem.update(requestDto.getQuantity(), requestDto.getUnitPrice()))
+                        .ifPresent(requestDto ->
+                                orderItem.update(requestDto.getQuantity(), requestDto.getUnitPrice())
+                        )
         );
 
         // 요청된 상품 중 기존에 없는 상품을 새로운 아이템으로 추가
         List<OrderItem> newOrderItems = orderItemRequestList.stream()
                 .filter(requestDto -> existingOrderItems.stream()
-                        .noneMatch(orderItem -> orderItem.getProductId().equals(requestDto.getProductId())))
-                .map(requestDto -> OrderItem.of(order, requestDto.getProductId(), requestDto.getQuantity(), requestDto.getUnitPrice()))
+                        .noneMatch(orderItem ->
+                                orderItem.getProductId().equals(requestDto.getProductId()))
+                )
+                .map(requestDto ->
+                        OrderItem.of(
+                                order,
+                                requestDto.getProductId(),
+                                requestDto.getQuantity(),
+                                requestDto.getUnitPrice())
+                )
                 .toList();
 
         List<OrderItem> updatedOrderItems = new ArrayList<>(existingOrderItems);
