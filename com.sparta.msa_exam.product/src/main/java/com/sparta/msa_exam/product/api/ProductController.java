@@ -1,9 +1,9 @@
 package com.sparta.msa_exam.product.api;
 
 import com.sparta.msa_exam.product.application.ProductService;
+import com.sparta.msa_exam.product.config.RestPage;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,11 +24,11 @@ public class ProductController {
     }
 
     @GetMapping()
-    public ResponseEntity<Page<ProductResponseDto>> getProductList(@RequestParam(defaultValue = "1") int page,
-                                                                   @RequestParam(defaultValue = "10") int size,
-                                                                   @RequestParam(defaultValue = "createdAt") String sortBy,
-                                                                   @RequestParam(defaultValue = "false") boolean isAsc) {
-        Page<ProductResponseDto> responseDtoPage = productService.getProductList(page - 1, size, sortBy, isAsc);
+    public ResponseEntity<RestPage<ProductResponseDto>> getProductList(@RequestParam(defaultValue = "1") int page,
+                                                                       @RequestParam(defaultValue = "10") int size,
+                                                                       @RequestParam(defaultValue = "createdAt") String sortBy,
+                                                                       @RequestParam(defaultValue = "false") boolean isAsc) {
+        RestPage<ProductResponseDto> responseDtoPage = productService.getProductList(page - 1, size, sortBy, isAsc);
         return ResponseEntity.ok(responseDtoPage);
     }
 
@@ -38,5 +38,10 @@ public class ProductController {
         return ResponseEntity.ok(productList);
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<List<ProductResponseDto>> getAllProduct() {
+        List<ProductResponseDto> responseDtoPage = productService.getAllProduct();
+        return ResponseEntity.ok(responseDtoPage);
+    }
 
 }

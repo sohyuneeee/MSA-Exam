@@ -2,9 +2,13 @@ package com.sparta.msa_exam.product.application;
 
 import com.sparta.msa_exam.product.api.ProductRequestDto;
 import com.sparta.msa_exam.product.api.ProductResponseDto;
+import com.sparta.msa_exam.product.config.RestPage;
 import com.sparta.msa_exam.product.domain.Product;
 import com.sparta.msa_exam.product.domain.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,14 +26,18 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
+    @CachePut(cacheNames = "productCache", key = "#result.productId")
     public ProductResponseDto createProduct(String userId, ProductRequestDto requestDto) {
         Product product = productRepository.save(Product.of(requestDto.getName(), requestDto.getSupplyPrice(), Long.parseLong(userId)));
         return ProductResponseDto.from(product);
     }
 
-    public Page<ProductResponseDto> getProductList(int page, int size, String sortBy, boolean isAsc) {
+    @Cacheable(cacheNames = "productListCache", key = "{args[0], args[1]}")
+    public RestPage<ProductResponseDto> getProductList(int page, int size, String sortBy, boolean isAsc) {
         Pageable pageable = createPageableWithSorting(page, size, sortBy, isAsc);
-        return productRepository.findAll(pageable).map(ProductResponseDto::from);
+        Page<Product> productPage = productRepository.findAll(pageable);
+        Page<ProductResponseDto> productResponsePage = productPage.map(ProductResponseDto::from);
+        return new RestPage<>(productResponsePage);
     }
 
     private Pageable createPageableWithSorting(int page, int size, String sortBy, boolean isAsc) {
@@ -46,6 +54,12 @@ public class ProductService {
         return productList.stream()
                 .map(ProductResponseDto::from)
                 .collect(Collectors.toList());
+    }
+
+    @Cacheable(cacheNames = "productCache", key = "methodName")
+    public List<ProductResponseDto> getAllProduct() {
+        List<Product> productList = productRepository.findAll();
+       return productList.stream().map(ProductResponseDto::from).toList();
     }
 
 }
