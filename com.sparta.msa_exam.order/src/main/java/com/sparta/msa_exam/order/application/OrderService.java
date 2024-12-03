@@ -14,9 +14,11 @@ import com.sparta.msa_exam.order.infra.ProductResponseDto;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.naming.Name;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,6 +42,7 @@ public class OrderService {
         return OrderResponseDto.from(order);
     }
 
+    @Cacheable(cacheNames = "orderCache", key = "args[1]")
     @Transactional(readOnly = true)
     public OrderResponseDto getOrder(String userId, Long orderId) {
         Order order = checkOrder(orderId);
