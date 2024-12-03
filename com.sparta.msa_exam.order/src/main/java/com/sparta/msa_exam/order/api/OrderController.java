@@ -1,11 +1,14 @@
 package com.sparta.msa_exam.order.api;
 
 import com.sparta.msa_exam.order.application.OrderService;
+import com.sparta.msa_exam.order.infra.ProductResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,6 +37,11 @@ public class OrderController {
                                                         @Valid @RequestBody OrderRequestDto requestDto) {
         OrderResponseDto responseDto = orderService.updateOrder(userId, orderId, requestDto);
         return ResponseEntity.ok(responseDto);
+    }
+
+    @PostMapping("/fail")
+    public List<ProductResponseDto> feignClientFailCase(@RequestBody OrderRequestDto requestDto) {
+        return orderService.feignClientFailCase(requestDto);
     }
 
 }
