@@ -17,10 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -57,14 +54,29 @@ public class OrderService {
         // 요청된 주문 아이템과 관련된 상품 정보 가져오기
         List<OrderItemRequestDto> orderItemRequestList = orderRequestDto.getOrderItems();
         List<ProductResponseDto> productResponseDtoList = getProductList(orderItemRequestList);
+
         // 상품 ID 리스트 생성
         List<Long> productIdList = productResponseDtoList.stream()
                 .map(ProductResponseDto::getProductId)
                 .toList();
-        // 기존 주문 아이템 업데이트
-        List<OrderItem> existingOrderItems = updateOrderItems(orderItemRequestList, order, productIdList);
+
+        // 기존 주문 아이템 가져오기
+        List<OrderItem> existingOrderItems = orderItemRepository.findOrderItemByOrderAndProductIdIn(order, productIdList);
+
+        // 기존 아이템 업데이트
+        existingOrderItems.forEach(orderItem ->
+                orderItemRequestList.stream()
+                        .filter(requestDto -> requestDto.getProductId().equals(orderItem.getProductId()))
+                        .findFirst()
+                        .ifPresent(requestDto -> orderItem.update(requestDto.getQuantity(), requestDto.getUnitPrice()))
+        );
+
         // 요청된 상품 중 기존에 없는 상품을 새로운 아이템으로 추가
-        List<OrderItem> newOrderItems = createOrderItems(orderItemRequestList, order, existingOrderItems);
+        List<OrderItem> newOrderItems = orderItemRequestList.stream()
+                .filter(requestDto -> existingOrderItems.stream()
+                        .noneMatch(orderItem -> orderItem.getProductId().equals(requestDto.getProductId())))
+                .map(requestDto -> OrderItem.of(order, requestDto.getProductId(), requestDto.getQuantity(), requestDto.getUnitPrice()))
+                .toList();
 
         List<OrderItem> updatedOrderItems = new ArrayList<>(existingOrderItems);
         updatedOrderItems.addAll(newOrderItems);
@@ -90,42 +102,6 @@ public class OrderService {
         throw new CustomException(ErrorCode.PRODUCT_SERVICE_UNAVAILABLE);
     }
 
-    private List<OrderItem> createOrderItems(List<OrderItemRequestDto> orderItemRequestList,
-                                             Order order,
-                                             List<OrderItem> existingOrderItems) {
-        return orderItemRequestList.stream()
-                .filter(requestDto -> existingOrderItems.stream()
-                        .noneMatch(orderItem ->
-                                orderItem.getProductId().equals(requestDto.getProductId()))
-                )
-                .map(requestDto ->
-                        OrderItem.of(
-                                order,
-                                requestDto.getProductId(),
-                                requestDto.getQuantity(),
-                                requestDto.getUnitPrice())
-                )
-                .toList();
-    }
-
-    private List<OrderItem> updateOrderItems(List<OrderItemRequestDto> orderItemRequestList,
-                                            Order order,
-                                            List<Long> productIdList) {
-        List<OrderItem> existingOrderItems = orderItemRepository.findOrderItemByOrderAndProductIdIn(order, productIdList);
-        existingOrderItems.forEach(orderItem -> orderItemRequestList.stream()
-                        .filter(requestDto ->
-                                requestDto.getProductId().equals(orderItem.getProductId())
-                        )
-                        .findFirst()
-                        .ifPresent(requestDto ->
-                                orderItem.update(
-                                        requestDto.getQuantity(),
-                                        requestDto.getUnitPrice())
-                        )
-        );
-        return existingOrderItems;
-    }
-
     private Order checkOrder(Long orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
@@ -144,10 +120,10 @@ public class OrderService {
         List<ProductResponseDto> productList = productClient.getProductsByIdList(productIdList);
 
         return orderItemRequestList.stream()
-                .map(orderItemRequest -> {
+                .map(requestDto -> {
                     Optional<ProductResponseDto> productResponseDto = productList.stream()
                             .filter(product ->
-                                    product.getProductId().equals(orderItemRequest.getProductId())
+                                    product.getProductId().equals(requestDto.getProductId())
                             )
                             .findFirst();
                     if (productResponseDto.isEmpty()) {
