@@ -3,12 +3,14 @@ package com.sparta.msa_exam.order.api;
 import com.sparta.msa_exam.order.domain.OrderItem;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 public class OrderItemResponseDto {
-    private final Long productId;
-    private final Integer quantity;
-    private final Integer unitPrice;
+    private Long productId;
+    private Integer quantity;
+    private Integer unitPrice;
 
     @Builder
     private OrderItemResponseDto(Long productId, Integer quantity, Integer unitPrice) {
