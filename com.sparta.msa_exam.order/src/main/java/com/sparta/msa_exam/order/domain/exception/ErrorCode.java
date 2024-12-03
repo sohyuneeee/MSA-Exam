@@ -15,11 +15,11 @@ public enum ErrorCode {
 
     USER_NOT_SAME("해당 작성자가 아닙니다.", BAD_REQUEST),
 
-    PRODUCT_NOT_FOUND("상품이 존재하지 않습니다.", NOT_FOUND),
+    PRODUCT_NOT_FOUND("상품이 존재하지 않습니다.", BAD_REQUEST),
     PRODUCT_ID_EMPTY("상품 아이디가 존재하지 않습니다.", BAD_REQUEST),
     PRODUCT_SERVICE_UNAVAILABLE("상품 정보를 불러오는 데 실패했습니다. 잠시 후에 다시 시도해주세요.", BAD_GATEWAY),
 
-    ORDER_NOT_FOUND("주문이 존재하지 않습니다.", NOT_FOUND),
+    ORDER_NOT_FOUND("주문이 존재하지 않습니다.", BAD_REQUEST),
     ORDER_ITEMS_EMPTY("주문 아이템이 존재하지 않습니다.", BAD_REQUEST),
     ORDER_ITEM_QUANTITY_EMPTY("주문 아이템 수량이 존재하지 않습니다.", BAD_REQUEST),
     ORDER_ITEM_QUANTITY_INVALID("주문 아이템 수량이 유효하지 않습니다.", BAD_REQUEST),
